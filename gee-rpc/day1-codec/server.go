@@ -43,6 +43,7 @@ var DefaultServer = NewServer()
 func (server *Server) ServeConn(conn io.ReadWriteCloser) {
 	defer func() { _ = conn.Close() }()
 	var opt Option
+	// 解码 协议协商  opt.CodecType => 格式 MagicNumber 校验
 	if err := json.NewDecoder(conn).Decode(&opt); err != nil {
 		log.Println("rpc server: options error: ", err)
 		return
@@ -66,6 +67,8 @@ func (server *Server) serveCodec(cc codec.Codec) {
 	sending := new(sync.Mutex) // make sure to send a complete response
 	wg := new(sync.WaitGroup)  // wait until all request are handled
 	for {
+		// 一次请求 最前面的指定消息编码器 后面的就是 调用函数 并发处理
+		// | Option | Header1 | Body1 | Header2 | Body2 | ...
 		req, err := server.readRequest(cc)
 		if err != nil {
 			if req == nil {
@@ -126,8 +129,9 @@ func (server *Server) handleRequest(cc codec.Codec, req *request, sending *sync.
 	// TODO, should call registered rpc methods to get the right replyv
 	// day 1, just print argv and send a hello message
 	defer wg.Done()
-	log.Println(req.h, req.argv.Elem())
-	req.replyv = reflect.ValueOf(fmt.Sprintf("geerpc resp %d", req.h.Seq))
+	// 
+	log.Println("解析到的一次调用的 其中一个消息",req.h, req.argv.Elem())
+	req.replyv = reflect.ValueOf(fmt.Sprintf("@geerpc resp %d", req.argv.Elem()))
 	server.sendResponse(cc, req.h, req.replyv.Interface(), sending)
 }
 
@@ -140,6 +144,7 @@ func (server *Server) Accept(lis net.Listener) {
 			log.Println("rpc server: accept error:", err)
 			return
 		}
+		// 处理一个连接
 		go server.ServeConn(conn)
 	}
 }

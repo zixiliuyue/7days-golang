@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"geerpc"
+	// "github.com/go-basic/uuid"
 	"geerpc/codec"
 	"log"
 	"net"
@@ -40,10 +41,44 @@ func main() {
 			ServiceMethod: "Foo.Sum",
 			Seq:           uint64(i),
 		}
-		_ = cc.Write(h, fmt.Sprintf("geerpc req %d", h.Seq))
+		// go server.handleRequest(cc, req, sending, wg)
+		_ = cc.Write(h, fmt.Sprintf("geerpc req %v", time.Now().Nanosecond()))
+		_ = cc.Write(h, fmt.Sprintf("geerpc req %v", time.Now().Nanosecond()))
+
+		_ = cc.Write(h, fmt.Sprintf("geerpc req %v", time.Now().Nanosecond()))
+		_ = cc.Write(h, fmt.Sprintf("geerpc req %v", time.Now().Nanosecond()))
+
 		_ = cc.ReadHeader(h)
 		var reply string
 		_ = cc.ReadBody(&reply)
 		log.Println("reply:", reply)
+
+		_ = cc.ReadHeader(h)
+		_ = cc.ReadBody(&reply)
+		log.Println("reply:", reply)
+
+		_ = cc.ReadHeader(h)
+		_ = cc.ReadBody(&reply)
+		log.Println("reply:", reply)
+
+		_ = cc.ReadHeader(h)
+		_ = cc.ReadBody(&reply)
+		log.Println("reply:11", reply)
+
+		
 	}
+	// for {
+	// 	var reply string
+	// 	h := &codec.Header{}
+	// 	err := cc.ReadHeader(h)
+	// 	fmt.Println(time.Now())
+	// 	if err != nil {
+	// 		break
+	// 	}
+	// 	err = cc.ReadBody(&reply)
+	// 	if err != nil {
+	// 		break
+	// 	}
+	// 	log.Println("reply:", reply, ",答复次数")
+	// }
 }
